@@ -1,0 +1,738 @@
+# This file contains a list of options.
+#
+# An option is a hash with the following keys and properties:
+# - name:
+# - default: The default value.
+# - required: (optional) A boolean indicating whether this option must be set explicitly.
+# - description: (optional) A string describing what this option does.
+# - condition: (optional) A JavaScript expression that determines whether this option is visible in the GUI editor. It can only refer to options that are above it. If it is evaluated to false, then this option takes the default value.
+# - children: (optional) Must be present if type is 'group'. A list of options.
+# - values: (optional) Must be present if type is 'checkboxes' or 'dropdown'.
+
+- name: workflow
+  default: [approval, thanks]
+  required: true
+  # description: "An array of pages that each voter sees. Allowed pages are <ul><li>approval</li><li>thanks_approval</li><li>comparison</li><li>knapsack</li><li>ranking</li><li>token</li><li>question</li><li>survey</li><li>thanks</li></ul> When workflow contains a subarray, one of the pages in the subarray will be randomly chosen to show to the voter. For example, if you use \"[approval, thanks_approval, [comparison, knapsack], survey, thanks]\", one interface out of comparison and knapsack will be chosen randomly."
+
+#- name: categorized
+#  default: false
+#  description: "Group projects into categories"
+#  required: true
+
+- name: available_locales
+  default: [en]
+  required: true
+  # values: [[en, English], [es, Spanish], [fi, Finnish], [fr, French], [zh, Chinese]]
+
+- name: default_locale
+  default: en
+  required: true
+  # values: [[en, English], [es, Spanish], [fi, Finnish], [fr, French], [zh, Chinese]]
+
+- name: timeout
+  default: 600
+  # description: "In seconds. Use 0 for no timeout."
+
+# FIXME: datetime, not just date.
+- name: start_date
+  default: ''
+
+- name: end_date
+  default: ''
+
+- name: stop_accepting_votes
+  default: false  # store this in the database & rename it to something else.
+  # description: "If set to yes, the system will not take any more votes. You can use this option to disable voting before the PB starts and after the PB ends."
+
+- name: voting_has_ended
+  default: false  # store this in the database & rename it to something else.
+  # description: "If set to yes, this option will display a text on the main page that says that \"The voting has ended.\""
+
+- name: show_public_results
+  default: false
+  required: true
+
+- name: allow_local_voting
+  default: false
+  required: true
+
+- name: allow_remote_voting
+  default: false
+  required: true
+
+- name: remote_voting_sms_verification
+  default: false
+  # condition: "c('allow_remote_voting')"
+
+- name: remote_voting_other_verification
+  default: false
+  # condition: "c('allow_remote_voting')"
+
+- name: remote_voting_code_verification
+  default: false
+  # condition: "c('allow_remote_voting')"
+
+- name: remote_voting_free_verification
+  default: false
+  # condition: "c('allow_remote_voting')"
+
+- name: free_verification_multiline_text
+  default: false
+  # condition: "c('remote_voting_free_verification')"
+
+- name: free_verification_use_captcha
+  default: true
+  # condition: "c('remote_voting_free_verification')"
+
+- name: voter_registration
+  default: false
+  # description: "Ask voters some personal information questions before they vote."
+
+- name: voter_registration_questions
+  default: [name, zip_code]
+  required: true
+  # values: [['name', 'Name'], ['first_name', 'First name'], ['middle_initial', 'Middle initial (optional)'], ['last_name', 'Last name'], ['suffix', 'Suffix (optional)'], ['address', 'Address'], ['city', 'City'], ['zip_code', 'ZIP code'], ['phone_number', 'Phone number (optional)'], ['birth_year', 'Birth year'], ['date_of_birth', 'Date of birth'], ['email', 'Email (optional)'], ['age_verify', 'Age verify'], ['ward', 'Ward']]
+  # condition: "c('voter_registration')"
+
+- name: minimum_voting_age
+  default: 0
+  # description: "The minimum age requirement. Use 0 for no mimimum voting age."
+  # condition: "c('voter_registration') && c('voter_registration_questions').indexOf('date_of_birth') != -1"
+
+- name: maximum_voting_age
+  default: 0
+  # description: "The maximum age requirement. Use 0 for no maximum voting age."
+  # condition: "c('voter_registration') && c('voter_registration_questions').indexOf('date_of_birth') != -1"
+
+- name: age_as_of_date
+  default: ''
+  # description: "Check the voter's age as of specified date. The date <b>must</b> be in the MM/DD/YYYY format or blank. If blank, check the voter's age as of today."
+  # condition: "c('minimum_voting_age') > 0 || c('maximum_voting_age') > 0"
+
+- name: send_vote_sms
+  default: false
+  # description: "Send an SMS to the voter after they vote to confirm that we have received their vote. To use this option, voter_registration must be yes and voter_registration_questions must include phone_number."
+
+- name: external_redirect_url
+  default: ''
+  # description: "The URL to redirect the voter to after they reach the last page."
+
+- name: currency_symbol
+  default: $
+
+- name: index
+  children:
+
+    - name: show_remote_voting_sms_button
+      default: true
+      # condition: "c('allow_remote_voting') && c('remote_voting_sms_verification')"
+
+    - name: show_remote_voting_other_button
+      default: true
+      # condition: "c('allow_remote_voting') && c('remote_voting_other_verification')"
+
+    - name: show_remote_voting_code_button
+      default: false
+      # condition: "c('allow_remote_voting') && c('remote_voting_code_verification')"
+
+    - name: show_remote_voting_free_button
+      default: true
+      # condition: "c('allow_remote_voting') && c('remote_voting_free_verification')"
+
+    - name: show_explore_button
+      default: true
+
+    - name: see_projects_url
+      default: ""
+
+- name: approval
+  # condition: "(c('workflow') instanceof Array) && c('workflow').indexOf('approval') != -1"
+  children:
+
+    - name: has_budget_limit
+      default: false
+      required: true
+      # description: "Is there a limit on the total amount of money the voter can spend?"
+
+    - name: has_token_limit
+      default: false
+
+    - name: has_n_project_limit
+      default: true
+      required: true
+      # description: "Is there a limit on the number of projects the voter can choose?"
+
+    - name: total_tokens
+      default: 15
+      required: true
+      #description : "Total number of tokens that voter can use"
+
+    - name: max_n_projects
+      default: 4
+      required: true
+      # description: "The maximum number of projects the voter can choose."
+      # condition: "c('approval.has_n_project_limit')"
+
+    - name: min_n_projects
+      default: 0
+      # description: "The minimum number of projects the voter must choose."
+      # condition: "c('approval.has_n_project_limit')"
+
+    - name: allow_selection_beyond_limits
+      default: true
+      # description: "While the voter is selecting projects, should we allow them to temporarily exceed the limit(s)? (We won't let them submit their vote anyway if it exceeds the limit.)"
+
+    - name: pages
+      default: [1]
+      # description: "An array whose length is equal to the number of subpages. Each element corresponds to the category group to be shown on that subpage."
+
+    - name: project_limits
+      default: []
+      # description: "An array of project limits for each subpage."  # FIXME: Clarify.
+      # condition: "(c('approval.pages') instanceof Array) && c('approval.pages').length > 1"
+
+    - name: project_ranking
+      default: false
+
+    - name: shuffle_projects
+      default: true
+      required: true
+      # description: "Randomize the order of projects."
+
+    - name: shuffle_probability
+      default: 1.0
+      # description: "Probability that the projects are shuffled. Use 1 for \"always shuffled.\" Use 0.5 for \"shuffled half of the time.\""
+      # condition: "c('approval.shuffle_projects')"
+
+    - name: sidebar
+      default: true
+      # description: "Show a list of projects on the left side of the page."
+
+    - name: budgetbar
+      default: false
+      # description: "Show a budget bar at the top of the page."
+    
+    - name: tokenbar
+      default: false
+      # description: "Show a token bar at the top of the page."
+    
+    - name: tracker
+      default: true
+      # description: "Show a text at the top-left corner of the page that indicates how many projects the voter has selected."
+
+    - name: top_tracker
+      default: false
+      # description: "Show a text at the top of the page that indicates how many projects the voter has selected."
+
+    - name: n_cols
+      default: 1
+
+    - name: show_cost
+      default: true
+
+    - name: show_cost_in_title
+      default: false
+
+    - name: show_numbers
+      default: false
+
+    - name: show_numbers_when_shuffled
+      default: true
+      # condition: "c('approval.shuffle_projects') && c('approval.show_numbers')"
+
+    - name: show_numbers_in_description_when_shuffled
+      default: false
+      # condition: "c('approval.shuffle_projects')"
+
+    - name: show_numbers_on_top_when_shuffled
+      default: false
+      # condition: "c('approval.shuffle_projects')"
+
+    - name: show_maps
+      default: false
+
+    - name: show_popup
+      default: true
+
+    - name: show_disclaimer
+      default: false
+
+    - name: show_shuffle_note
+      default: false
+      # description: "Inform the voter when the order of projects is randomized."
+      # condition: "c('approval.shuffle_projects')"
+
+    - name: show_help
+      default: false
+      # description: "Show the Help link at the top-right corner."
+
+    - name: categories_in_sidebar
+      default: false
+      # description: "Enable this only for single category approval pages."
+      # condition: "c('categorized') && (c('approval.pages') instanceof Array) && c('approval.pages').length > 1"
+
+    - name: categories_in_popups
+      default: false
+      # description: "Enable this only for single category approval pages."
+      # condition: "c('categorized') && (c('approval.pages') instanceof Array) && c('approval.pages').length > 1"
+
+    - name: checkbox_acknowledgment
+      default: true
+      # description: "Before the voter submits their vote, they must click a checkbox that says that they understand that they cannot change their vote afterwards."
+
+    - name: allow_select_in_sidebar
+      default: true
+      # condition: "c('approval.sidebar')"
+
+    - name: reverse_order_of_radio_buttons_for_adjustable_cost_projects
+      default: true
+
+    - name: theme
+      default: 1
+      # values: [[0, "Light"], [1, "Gray"], [2, "Dark"]]
+
+- name: knapsack
+  # condition: "(c('workflow') instanceof Array) && c('workflow').indexOf('knapsack') != -1"
+  children:
+
+    - name: has_budget_limit
+      default: true
+      required: true
+      # description: "Is there a limit on the total amount of money the voter can spend?"
+    
+    - name: has_token_limit
+      default: false
+
+    - name: has_n_project_limit
+      default: false
+      required: true
+      # description: "Is there a limit on the number of projects the voter can choose?"
+
+    - name: total_tokens
+      default: 15
+      required: true
+      #description :"Total number of tokens that voter can use"
+
+    - name: max_n_projects
+      default: 4
+      required: true
+      # description: "The maximum number of projects the voter can choose."
+      # condition: "c('knapsack.has_n_project_limit')"
+
+    - name: min_n_projects
+      default: 0
+      # description: "The minimum number of projects the voter must choose."
+      # condition: "c('knapsack.has_n_project_limit')"
+
+    - name: allow_selection_beyond_limits
+      default: false
+      # description: "While the voter is selecting projects, should we allow them to temporarily exceed the limit(s)? (We won't let them submit their vote anyway if it exceeds the limit.)"
+
+    - name: pages
+      default: [1]
+      # description: "An array whose length is equal to the number of subpages. Each element corresponds to the category group to be shown on that subpage."
+
+    - name: shuffle_projects
+      default: true
+      required: true
+
+    - name: show_cost_in_title
+      default: false
+
+    - name: shuffle_probability
+      default: 1.0
+      # description: "Probability that the projects are shuffled. Use 1 for \"always shuffled.\" Use 0.5 for \"shuffled half of the time.\""
+      # condition: "c('knapsack.shuffle_projects')"
+
+    - name: sidebar
+      default: true
+      # description: "Show a list of projects on the left side of the page."
+
+    - name: budgetbar
+      default: true
+      # description: "Show a budget bar at the top of the page."
+    
+    - name: tokenbar
+      default: false
+      # description: "Show a token bar at the top of the page."
+
+    - name: tracker
+      default: false
+      # description: "Show a text at the top-left corner of the page that indicates how many projects the voter has selected."
+
+    - name: n_cols
+      default: 1
+
+    - name: show_cost
+      default: true
+
+    - name: show_numbers
+      default: false
+
+    - name: show_numbers_when_shuffled
+      default: true
+      # condition: "c('knapsack.shuffle_projects') && c('knapsack.show_numbers')"
+
+    - name: show_numbers_in_description_when_shuffled
+      default: false
+      # condition: "c('knapsack.shuffle_projects')"
+
+    - name: show_numbers_on_top_when_shuffled
+      default: false
+      # condition: "c('knapsack.shuffle_projects')"
+
+    - name: show_maps
+      default: false
+
+    - name: show_popup
+      default: true
+
+    - name: show_disclaimer
+      default: false
+
+    - name: show_shuffle_note
+      default: false
+      # description: "Inform the voter when the order of projects is randomized."
+      # condition: "c('knapsack.shuffle_projects')"
+
+    - name: show_help
+      default: true
+      # description: "Show the Help link at the top-right corner."
+
+    - name: checkbox_acknowledgment
+      default: false
+      # description: "Before the voter submits their vote, they must click a checkbox that says that they understand that they cannot change their vote afterwards."
+
+    - name: allow_select_in_sidebar
+      default: true
+
+    - name: theme
+      default: 2
+      # values: [[0, "Light"], [1, "Gray"], [2, "Dark"]]
+
+- name: token
+  # condition: "(c('workflow') instanceof Array) && c('workflow').indexOf('token') != -1"
+  children:
+
+    - name: has_budget_limit
+      default: false
+      required: true
+      # description: "Is there a limit on the total amount of money the voter can spend?"
+    
+    - name: has_token_limit
+      default: true
+
+    - name: has_n_project_limit
+      default: false
+      required: true
+      # description: "Is there a limit on the number of projects the voter can choose?"
+    
+    - name: total_tokens
+      default: 15
+      required: true
+      #description :"Total number of tokens that voter can use"
+
+    - name: max_n_projects
+      default: 4
+      required: true
+      # description: "The maximum number of projects the voter can choose."
+      # condition: "c('token.has_n_project_limit')"
+
+    - name: min_n_projects
+      default: 0
+      # description: "The minimum number of projects the voter must choose."
+      # condition: "c('token.has_n_project_limit')"
+
+    - name: allow_selection_beyond_limits
+      default: false
+      # description: "While the voter is selecting projects, should we allow them to temporarily exceed the limit(s)? (We won't let them submit their vote anyway if it exceeds the limit.)"
+
+    - name: pages
+      default: [1]
+      # description: "An array whose length is equal to the number of subpages. Each element corresponds to the category group to be shown on that subpage."
+
+    - name: shuffle_projects
+      default: true
+      required: true
+
+    - name: shuffle_probability
+      default: 1.0
+      # description: "Probability that the projects are shuffled. Use 1 for \"always shuffled.\" Use 0.5 for \"shuffled half of the time.\""
+      # condition: "c('token.shuffle_projects')"
+
+    - name: sidebar
+      default: true
+      # description: "Show a list of projects on the left side of the page."
+
+    - name: budgetbar
+      default: false
+      # description: "Show a budget bar at the top of the page."
+    
+    - name: tokenbar
+      default: true
+      # description: "Show a token bar at the top of the page."
+
+    - name: tracker
+      default: false
+      # description: "Show a text at the top-left corner of the page that indicates how many projects the voter has selected."
+
+    - name: n_cols
+      default: 2
+
+    - name: show_cost
+      default: false
+
+    - name: show_numbers
+      default: false
+
+    - name: show_numbers_when_shuffled
+      default: true
+      # condition: "c('token.shuffle_projects') && c('token.show_numbers')"
+
+    - name: show_numbers_in_description_when_shuffled
+      default: false
+      # condition: "c('token.shuffle_projects')"
+
+    - name: show_numbers_on_top_when_shuffled
+      default: false
+      # condition: "c('token.shuffle_projects')"
+
+    - name: show_maps
+      default: false
+
+    - name: show_popup
+      default: true
+    
+    - name: show_cost_in_title
+      default: false
+
+    - name: show_disclaimer
+      default: false
+
+    - name: show_shuffle_note
+      default: false
+      # description: "Inform the voter when the order of projects is randomized."
+      # condition: "c('token.shuffle_projects')"
+
+    - name: show_help
+      default: true
+      # description: "Show the Help link at the top-right corner."
+
+    - name: checkbox_acknowledgment
+      default: false
+      # description: "Before the voter submits their vote, they must click a checkbox that says that they understand that they cannot change their vote afterwards."
+
+    - name: allow_select_in_sidebar
+      default: false
+
+    - name: theme
+      default: 2
+      # values: [[0, "Light"], [1, "Gray"], [2, "Dark"]]
+
+- name: ranking
+  # condition: "(c('workflow') instanceof Array) && c('workflow').indexOf('ranking') != -1"
+  children:
+
+    - name: has_budget_limit
+      default: false
+      required: true
+      # description: "Is there a limit on the total amount of money the voter can spend?"
+    
+    - name: has_token_limit
+      default: false
+
+    - name: has_n_project_limit
+      default: true
+      required: true
+      # description: "Is there a limit on the number of projects the voter can choose?"
+    
+    - name: total_tokens
+      default: 15
+      required: true
+      #description :"Total number of tokens that voter can use"
+
+    - name: max_n_projects
+      default: 4
+      required: true
+      # description: "The maximum number of projects the voter can choose."
+      # condition: "c('ranking.has_n_project_limit')"
+
+    - name: min_n_projects
+      default: 0
+      # description: "The minimum number of projects the voter must choose."
+      # condition: "c('ranking.has_n_project_limit')"
+
+    - name: allow_selection_beyond_limits
+      default: true
+      # description: "While the voter is selecting projects, should we allow them to temporarily exceed the limit(s)? (We won't let them submit their vote anyway if it exceeds the limit.)"
+
+    - name: pages
+      default: [1]
+      # description: "An array whose length is equal to the number of subpages. Each element corresponds to the category group to be shown on that subpage."
+
+    - name: project_ranking
+      default: true
+
+    - name: shuffle_projects
+      default: true
+      required: true
+      # description: "Randomize the order of projects."
+
+    - name: shuffle_probability
+      default: 1.0
+      # description: "Probability that the projects are shuffled. Use 1 for \"always shuffled.\" Use 0.5 for \"shuffled half of the time.\""
+      # condition: "c('ranking.shuffle_projects')"
+
+    - name: sidebar
+      default: true
+      # description: "Show a list of projects on the left side of the page."
+
+    - name: budgetbar
+      default: false
+      # description: "Show a budget bar at the top of the page."
+    
+    - name: tokenbar
+      default: false
+      # description: "Show a token bar at the top of the page."
+
+    - name: tracker
+      default: true
+      # description: "Show a text at the top-left corner of the page that indicates how many projects the voter has selected."
+
+    - name: top_tracker
+      default: false
+      # description: "Show a text at the top of the page that indicates how many projects the voter has selected."
+
+    - name: n_cols
+      default: 1
+
+    - name: show_cost
+      default: false
+
+    - name: show_cost_in_title
+      default: false
+
+    - name: show_numbers
+      default: false
+
+    - name: show_numbers_when_shuffled
+      default: true
+      # condition: "c('ranking.shuffle_projects') && c('ranking.show_numbers')"
+
+    - name: show_numbers_in_description_when_shuffled
+      default: false
+      # condition: "c('ranking.shuffle_projects')"
+
+    - name: show_numbers_on_top_when_shuffled
+      default: false
+      # condition: "c('ranking.shuffle_projects')"
+
+    - name: show_maps
+      default: false
+
+    - name: show_popup
+      default: true
+
+    - name: show_disclaimer
+      default: false
+
+    - name: show_shuffle_note
+      default: false
+      # description: "Inform the voter when the order of projects is randomized."
+      # condition: "c('ranking.shuffle_projects')"
+
+    - name: show_help
+      default: false
+      # description: "Show the Help link at the top-right corner."
+
+    - name: categories_in_sidebar
+      default: false
+      # description: "Enable this only for single category approval pages."
+      # condition: "c('categorized') && (c('ranking.pages') instanceof Array) && c('ranking.pages').length > 1"
+
+    - name: categories_in_popups
+      default: false
+      # description: "Enable this only for single category approval pages."
+      # condition: "c('categorized') && (c('ranking.pages') instanceof Array) && c('ranking.pages').length > 1"
+
+    - name: checkbox_acknowledgment
+      default: true
+      # description: "Before the voter submits their vote, they must click a checkbox that says that they understand that they cannot change their vote afterwards."
+
+    - name: allow_select_in_sidebar
+      default: true
+      # condition: "c('ranking.sidebar')"
+
+    - name: reverse_order_of_radio_buttons_for_adjustable_cost_projects
+      default: true
+
+    - name: theme
+      default: 1
+      # values: [[0, "Light"], [1, "Gray"], [2, "Dark"]]
+
+- name: thanks_approval
+  # description: "This is the page that appears after the voter casts their vote in the approval vote page."
+  # condition: "(c('workflow') instanceof Array) && c('workflow').indexOf('thanks_approval') != -1"
+  children:
+
+    - name: vote_email
+      default: false
+      # description: "Show a text field for the voter to optionally enter their email address to receive an email confirming their vote."
+
+# This is a page for asking a question such as "Are you 18 or older?", "Are you a resident of ...?"
+# If the voter chooses the primary answer (i.e. "yes"), then it goes to the next page specified in 'workflow'.
+# If the voter chooses the alternative answer (i.e. "no"), then it goes to the 'alternative_page'.
+# By default, the alternative_page is the "thanks" page. If you want to redirect the voter
+# to another version of the survey, set alternative_page to "survey" and
+# alternative_params to {alternative: 1}. This will send the voter to "/survey?alternative=1"
+- name: question
+  # condition: "(c('workflow') instanceof Array) && c('workflow').indexOf('question') != -1"
+  children:
+
+    - name: alternative_page
+      default: "thanks"
+
+    - name: alternative_params
+      default: ~
+
+- name: comparison
+  # condition: "(c('workflow') instanceof Array) && c('workflow').indexOf('comparison') != -1"
+  children:
+
+    - name: n_pairs
+      default: 4
+
+    - name: show_photos
+      default: false
+
+    - name: show_exit_link
+      default: true
+
+    - name: show_disclaimer
+      default: false
+
+    - name: show_popup
+      default: true
+
+    - name: show_cost_bars
+      default: true
+
+- name: survey
+  # condition: "(c('workflow') instanceof Array) && c('workflow').indexOf('survey') != -1"
+  children:
+
+    - name: url
+      default: "https://stanforduniversity.qualtrics.com/SE/?SID=SV_5BxGgYgN2GFNuRL"
+      required: true
+
+    - name: asks_question
+      default: false
+      # description: "Ask a question such as \"Are you 14 years or older?\" before the voter takes the survey. The question can be set in locales.en.survey.question. If the voter answers \"No\" (or any variation of that), skip the survey."
+
+    - name: alternative_url
+      default: ""
+      # description: "The survey URL if ?alternative=1. This can only be used with the question page."
+
+    - name: show_exit_link
+      default: true
+      # description: "Show the Exit link at the top-right corner to allow voters to skip the survey."

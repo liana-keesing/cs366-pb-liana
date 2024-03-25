@@ -1,0 +1,39 @@
+<% content_for :title, 'Admin' %>
+
+<% if current_user %>
+  <% content_for :primary do %>
+    <style>
+    .election-table .glyphicon {
+      margin-right: 2px;
+    }
+    </style>
+
+    <div class="container-fluid">
+
+      <h2>Elections</h2>
+
+      <% if current_user.superadmin? %>
+        <p><a href="<%= new_admin_election_path %>">Add a new election</a></p>
+      <% end %>
+
+      <table class="table table-sm election-table">
+      <% if !@active_elections.empty? %>
+        <%= render partial: 'shared/election_list', locals: {elections: @active_elections, is_active: true} %>
+      <% end %>
+      <% if !@inactive_elections.empty? %>
+        <%= render partial: 'shared/election_list', locals: {elections: @inactive_elections, is_active: false} %>
+      <% end %>
+      </table>
+
+      <br><br>
+    </div>
+  <% end %>
+
+  <%= render partial: 'shared/admin_template', locals: {items: []} %>
+<% elsif session[:voting_machine_user_id] %>
+  <div class="container-fluid text-center">
+    <br><br><br><br>
+    <a href="/admin/users/logout" class="btn btn-primary btn-lg">Log Out</a>
+    <br><br>
+  </div>
+<% end %>

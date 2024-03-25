@@ -1,0 +1,28 @@
+<% content_for :title, 'User: New' %>
+
+<% content_for :primary do %>
+<div class="container-fluid">
+
+      <h2>New User</h2>
+
+      <%= render partial: 'shared/user_form', locals: { election: @election, user: @user, election_user: @election_user, is_creating: true, is_owner: false } %>
+
+      <div>
+        <a href="<%= @election ? admin_election_users_path(@election) : admin_users_path %>">Back to users list</a>
+      </div>
+
+</div>
+<% end %>
+
+<% if @election %>
+  <%= render partial: 'shared/admin_template', locals: {items: [
+    @election,
+    ['Users', admin_election_users_path(@election)],
+    'Add a New User'
+  ]} %>
+<% else %>
+  <%= render partial: 'shared/admin_template', locals: {items: [
+    ['Users', admin_users_path],
+    'Add a New User'
+  ]} %>
+<% end %>

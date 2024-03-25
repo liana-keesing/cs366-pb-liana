@@ -1,0 +1,234 @@
+<% content_for :head do %>
+  <style>
+  .category-name {
+    margin-top: 40px;
+  }
+
+  .category-image {
+    vertical-align: text-bottom;
+    display: block;
+    margin-bottom: 12px;
+    max-width: 100px;
+  }
+
+  #projects .project {
+    padding: 14px 21px;
+    border-left: 1px #999 solid;
+    border-top: 1px #999 solid;
+  }
+
+  #projects .row {
+    border-right: 1px #999 solid;
+  }
+
+  #projects .row:last-child {
+    border-bottom: 1px #999 solid;
+  }
+
+
+
+  .project.disabled {
+    color: #666;
+  }
+
+  .project.selected {
+    background-color: yellow;
+  }
+
+  .project-title {
+    margin-bottom: 0;
+    font-weight: bold;
+  }
+
+  .project-description, .project-cost, .project-location {
+    
+  }
+
+  .project-details img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .select-button.btn-success {
+    box-shadow: none !important;
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    cursor: default !important;
+    pointer-events: none;
+  }
+
+  .project-image-wrapper {
+    max-width: 300px;
+  }
+
+  .project-image {
+    margin-top: 8px;
+    max-width: 100%; /* Can't set it to 300px here. */
+    max-height: 300px;
+    cursor: pointer;
+  }
+
+  .project-number-button {
+    width: 120px;
+    text-align: center;
+    font-weight: bold;
+    float: right;
+    padding: 10px;
+    margin-left: 20px;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+  }
+
+  .project-map {
+    width: 200px;
+    height: 200px;
+    float: right;
+  }
+
+  #selected-project-list {
+    font-size: 18px;
+  }
+
+  #selected-project-list li {
+    cursor: move;
+  }
+
+  #selected-project-list li:hover {
+    background-color: #eee;
+  }
+
+  #selected-project-list .handle {
+    float: right;
+  }
+
+  .list-item-rank {
+    float: left;
+    margin-right: 15px;
+    font-weight: bold;
+  }
+
+  .panel-heading {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .slider-selection {
+    background: #5cb85c;
+  }
+
+  .slider-wrapper {
+    font-size: 16px;
+  }
+  </style>
+<% end %>
+
+<div>
+  <% if conf[current_action][:show_disclaimer] %>
+    <div class="alert alert-info" role="alert">
+      <b><%= t('general.experiment_disclaimer') %></b>
+    </div>
+  <% end %>
+
+  <% if !real_voting? %>
+    <h3 style='color: red'><%= raw t("general.demo_warning") %></h3>
+  <% end %>
+  <%= raw t("#{current_action}.instructions",
+    max_n_projects: (current_action == :approval && conf[:approval][:pages].length > 1 && conf[:approval][:project_limits][@current_subpage]) ? conf[:approval][:project_limits][@current_subpage] : @election.config[current_action][:max_n_projects],
+    budget: '$' + number_with_delimiter(@election.budget.to_i),
+    total_tokens: conf[:token][:total_tokens]
+  ) %>
+
+  <% if conf[current_action][:show_shuffle_note] && @shuffled %>
+    <p><%= t('general.shuffle_note').html_safe %></p>
+  <% end %>
+  <br>
+
+  <center>
+    <button type="button" class="btn btn-primary btn-lg submitVoteButton"><%= t('approval.submit_button') %></button>
+  </center><br>
+
+  <% n_cols = [conf[current_action][:n_cols], 1].max %>
+
+  <% @categories.each do |category| %>
+    <% if @election.categorized? %>
+      <a id="category<%= category.id %>" style="display: block; position: relative; top: <%= -90 - @y_offset %>px;"></a>
+      <h3 class="category-name">
+        <% if category.image? %>
+          <img src="<%= category.image.url %>" class="category-image" />
+        <% end %>
+        <%= (!category.name.blank? ? category.name : "<span class='text-danger'>MISSING CATEGORY</span>").html_safe %>
+      </h3>
+    <% end %>
+
+    <div class="container-fluid">
+      <% projects = category.ordered_projects %>
+      <% projects.each_with_index do |project, index| %>
+        <% if index % n_cols == 0 %>
+          <div class="row">
+        <% end %>
+
+        <div class="col-sm-<%= 12 / n_cols %> project" id="project-cell<%= project.id %>">
+          <a id="project<%= project.id %>" style="display: block; position: relative; top: <%= -90 - @y_offset %>px;"></a>
+          <%= render partial: 'shared/project', locals: {project: project} %>
+        </div>
+
+        <%# if this is the last project and there are empty columns left, fill them out %>
+        <% if index == projects.length - 1 && projects.length % n_cols != 0 %>
+          <% (n_cols - (projects.length % n_cols)).times do %>
+            <div class="col-sm-<%= 12 / n_cols %> project" style="padding: 0">
+            </div>
+          <% end %>
+        <% end %>
+
+        <% if (index+1) % n_cols == 0 or index == projects.length - 1 %>
+          </div>
+        <% end %>
+
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if conf[current_action][:project_ranking] %>
+    <div class="modal" id="rankingModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title"><%= raw t("approval.project_ranking.list_header") %></h4>
+          </div>
+          <div class="modal-body">
+            <ul id="selected-project-list" class="list-group"></ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-lg" data-dismiss="modal"><%= t('approval.confirmation.cancel') %></button>
+
+            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#submitModal"><%= t('approval.project_ranking.continue_button') %></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/jquery-ui.min.js"></script>
+    <script src="/js/jquery.ui.touch-punch.min.js"></script>
+    <script>
+    $('#selected-project-list').sortable({
+      //handle: ".handle",
+      update: function(event, ui) {
+        var projectRanks = $(this).sortable('toArray');
+        updateRankings(projectRanks);
+      }
+    });
+    </script>
+  <% end %>
+
+  <br>
+  <center>
+    <button type="button" class="btn btn-primary btn-lg submitVoteButton"><%= t('approval.submit_button') %></button>
+  </center>
+
+  <% if conf[current_action][:show_disclaimer] %>
+    <div class="alert alert-info mt-4" role="alert">
+      <b><%= t('general.experiment_disclaimer') %></b>
+    </div>
+  <% end %>
+  <br><br><br>
+</div>

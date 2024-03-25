@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>"<%= (I18n.locale == :ar) ? ' dir="rtl"'.html_safe : '' %>>
+<head>
+  <title><%= yield :title %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <%= stylesheet_link_tag    'application', media: 'all' %>
+  <%= javascript_include_tag 'application' %>
+  <%= csrf_meta_tags %>
+  <style>
+  body { padding-top: 70px; }
+  <% if params[:controller] == 'vote' %>
+  .navbar-nav .nav-link { color: white !important; }
+  .navbar-nav .nav-link.nav-locale { font-weight: bold; }
+  <% end %>
+  </style>
+  <link rel="stylesheet" href="/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/css/glyphicon.min.css" />
+  <%= yield :head %>
+  <!--[if lt IE 9]>
+    <script src="/js/html5shiv.min.js"></script>
+    <script src="/js/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+
+<script src="/js/popper.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+
+<div class="navbarWrapper fixed-top">
+  <%= yield :fixed %>
+
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <span class="navbar-brand"><%= params[:controller] == 'vote' ? t('navigation.brand') : "Stanford PB" %></span>
+
+    
+    
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto">
+        <%= yield :navbar_links %>
+
+        <% if params[:controller] == 'vote' and ['about'].include?(params[:action]) %>
+          <li class="nav-item"><a href="<%= url_for(action: :index) %>" class="nav-link"><%= t('navigation.home') %></a></li>
+        <% end %>
+
+        <% if current_user %>
+          
+          <li class="nav-item"><a href="/admin/users/profile" class="nav-link">Profile</a></li>
+          <li class="nav-item"><a href="/admin/users/logout" class="nav-link">Log Out</a></li>
+        <% end %>
+
+        <% if params[:controller] == 'vote' and ['index'].include?(params[:action]) %>
+          <li class="nav-item"><a href="<%= url_for(action: :about) %>" class="nav-link"><%= t('navigation.about') %></a></li>
+        <% end %>
+
+        <% locales = (params[:controller] == 'vote') ? conf[:available_locales].map(&:to_sym) : [:en] # just English by default %>
+        <% permitted_params = params.permit %>
+
+        <% if locales.length <= 3  # if there are <= 3 languages available, show links to the other languages %>
+          <% (locales - [I18n.locale]).each do |locale| %>
+            <li class="nav-item"><a href="<%= url_for(permitted_params.merge(locale: locale)) %>" class="nav-link nav-locale"><%= LOCAL_LOCALE_NAMES[locale] %></a></li>
+          <% end %>
+        <% else  # if there are more than 3 languages, show a dropdown for changing languages  %>
+          <li class="nav-item dropdown">
+            <a href="#" class="nav-link nav-locale dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Languages <span class="caret"></span></a>
+            <div class="dropdown-menu dropdown-menu-right" role="menu">
+              <% locales.each do |locale| %>
+                <a href="<%= url_for(permitted_params.merge(locale: locale)) %>" class="dropdown-item">
+                  <span class="glyphicon glyphicon-ok" style="font-size: 0.8em; margin-left: -1em; margin-right: 4px; <%= (I18n.locale != locale) ? 'visibility: hidden;' : '' %>"></span>
+                  <%= LOCAL_LOCALE_NAMES[locale] %>
+                </a>
+              <% end %>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </div>  
+  </nav>
+</div>
+
+<div class="primary">  <%# Hacky fix to make it work with the admin template. %>
+  <% if flash[:errors] %>
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-sm-10">
+          <% flash[:errors].each do |err|  %>
+          <p class="alert alert-danger" role="alert">
+            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> <%= err %>
+          </p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <% if flash[:notice] %>
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-sm-10">
+          <p class="alert alert-success" role="alert">
+            <%= flash[:notice] %>
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%= yield %>
+
+</body>
+
+<footer>
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-sm-10 text-center">
+        <p>
+          Copyright &copy; 2021 <a href="https://voxpopuli.stanford.edu/" target="_blank">Stanford Crowdsourced Democracy Team</a>
+          &nbsp; (<a href = "/terms" target = "_blank"> Terms and Conditions </a>) &nbsp;
+          <!--<a><img src="/img/facebook.png" width="33" height="33" alt="Facebook icon"></a>&nbsp;-->
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+</html>

@@ -1,0 +1,28 @@
+<% content_for :title, 'Locations' %>
+
+<% content_for :primary do %>
+<div class="container-fluid">
+
+      <h2>Locations</h2>
+
+      <a href="<%= new_admin_election_location_path(@election) %>">Add a new location</a><br><br>
+
+      <ul>
+      <% @locations.each do |location| %>
+        <li>
+          <b><%= location.name %></b><br>
+          <a href="<%= edit_admin_election_location_path(election_id: @election.id, id: location.id) %>">Edit</a> &nbsp; | &nbsp;
+          <a href="<%= admin_election_location_path(election_id: @election.id, id: location.id) %>"
+             data-method="delete" data-confirm="Are you sure you want to delete this location?">Delete...</a>
+          <br><br>
+        </li>
+      <% end %>
+      </ul>
+
+</div>
+<% end %>
+
+<%= render partial: 'shared/admin_template', locals: {items: [
+  @election,
+  'Locations'
+]} %>

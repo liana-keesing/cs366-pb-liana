@@ -1,0 +1,25 @@
+<% content_for :title, t('navigation.brand') %>
+
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-sm-10 main">
+
+      <% if real_voting? %>
+        <div style="height: 100px;"></div>
+        <p class="lead text-center"><%= t('thanks.description.real').html_safe %></p>
+        <center>
+          <a href="<%= url_for(action: :done) %>" class="btn btn-primary btn-lg"><%= t('thanks.exit') %></a>
+        </center><br><br>
+      <% else %>
+        <div style="height: 30px;"></div>
+        <p class="lead"><%= t('thanks.description.demo').html_safe %></p>
+        <center>
+          <a href="<%= url_for(action: :index) %>" class="btn btn-primary btn-lg"><%= t('thanks.exit') %></a>
+        </center><br><br>
+      <% end %>
+
+    </div>
+  </div>
+</div>
+
+<%= render 'shared/timer' %>

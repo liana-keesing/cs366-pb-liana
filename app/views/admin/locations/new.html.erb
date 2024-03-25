@@ -1,0 +1,16 @@
+<% content_for :title, 'Location: New' %>
+
+<% content_for :primary do %>
+<div class="container-fluid">
+
+      <h2>New Location</h2>
+      <%= render partial: 'shared/location_form' %>
+
+</div>
+<% end %>
+
+<%= render partial: 'shared/admin_template', locals: {items: [
+  @election,
+  ['Locations', admin_election_locations_path(@election)],
+  'New'
+]} %>

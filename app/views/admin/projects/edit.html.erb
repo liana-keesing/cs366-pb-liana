@@ -1,0 +1,16 @@
+<% content_for :title, 'Project: Edit' %>
+
+<% content_for :primary do %>
+<div class="container-fluid">
+
+      <h2>Edit Project</h2>
+      <%= render partial: 'shared/project_form', locals: { is_creating: false } %>
+
+</div>
+<% end %>
+
+<%= render partial: 'shared/admin_template', locals: {items: [
+  @election,
+  ['Projects', admin_election_projects_path(@election)],
+  @project.title
+]} %>

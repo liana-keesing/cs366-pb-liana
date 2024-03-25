@@ -1,0 +1,18 @@
+<% content_for :title, 'Category: Edit' %>
+
+<% content_for :primary do %>
+<div class="container-fluid">
+
+      <h2>Edit Category</h2>
+      <%= render partial: 'shared/category_form' %>
+
+    </div>
+  </div>
+</div>
+<% end %>
+
+<%= render partial: 'shared/admin_template', locals: {items: [
+  @election,
+  ['Categories', admin_election_categories_path(@election)],
+  @category.name
+]} %>

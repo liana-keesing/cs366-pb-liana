@@ -1,0 +1,16 @@
+<% content_for :title, 'Analytics' %>
+
+<% content_for :primary do %>
+<div class="container-fluid">
+
+      <a href="<%= url_for('analytics') %>">Go back to main analytics</a>
+
+      <%= render partial: 'shared/analytics/adjustable_cost_projects', locals: {is_public: false} %>
+
+</div>
+<% end %>
+
+<%= render partial: 'shared/admin_template', locals: {items: [
+  @election,
+  'Analytics'
+]} %>

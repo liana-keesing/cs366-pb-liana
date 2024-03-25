@@ -1,0 +1,85 @@
+<% content_for :title, t('navigation.brand') %>
+
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-sm-10 main">
+
+      <div style="height: 30px;"></div>
+      <% if real_voting? %>
+        <%= t('thanks_approval.description.real').html_safe %>
+      <% else %>
+        <%= t('thanks_approval.description.demo').html_safe %>
+      <% end %>
+
+      <% if real_voting? && conf[:thanks_approval][:vote_email] %>
+        <form class="form-inline">
+          <div class="checkbox">
+            <label><input type="checkbox" id="send-vote-email"> <%= t('thanks_approval.send_vote_email').html_safe %></label>
+          </div>
+          <input type="email" class="form-control" id="voter-email" placeholder="<%= t('thanks_approval.email_placeholder') %>">
+        </form><br>
+      <% end %>
+
+      <center>
+        <a href="<%= url_for(next_page(:thanks_approval)) %>" class="btn btn-primary btn-lg" id="next-page"><%= t('thanks_approval.next_button').html_safe %></a>
+      </center>
+
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  var $nextBtn = $('#next-page');
+
+  // Function to send the email on pressing Enter or the Next button
+  var sendEmail = function(e) {
+    if ($('#send-vote-email').is(':checked')) {
+      e.preventDefault();
+      var email = $('#voter-email').val();
+      if (!/^[a-zA-Z0-9_\-\+\.=\$]+@[a-zA-Z0-9_\-\+]+\.[a-zA-Z0-9_\-\+\.]+$/.test(email)) {
+        alert('"' + email + '" is not a valid email address.');
+        return;
+      }
+
+      $nextBtn.attr('disabled', 'disabled');
+      var finishedUrl = $nextBtn.attr('href');
+      $.ajax({
+        data: {
+          email: email
+        },
+        method: 'post',
+        url: '<%= url_for(action: :send_vote_email) %>'
+      }).done(function(result) {
+        alert(result.message);
+        window.location.href = finishedUrl;
+      }).error(function(error) {
+        alert('There is something wrong. The email could not be sent.');
+        $nextBtn.removeAttr('disabled');
+      });
+    }
+  };
+
+  (function() {
+    // Invoke the function to send email on pressing the next button
+    $nextBtn.on('click', sendEmail);
+
+    // Invoke the function to send email on pressing the Enter key
+    $('#voter-email').on('keypress', function(e) {
+      var keycode = (e.keyCode ? e.keyCode : e.which);
+      if(keycode == 13){
+        sendEmail(e);
+      }
+    });
+
+    $('#send-vote-email').on('change', function() {
+      if (!$('#send-vote-email').is(':checked')) {
+        $('#voter-email').val('');
+      }
+    });
+    $('#voter-email').on('keydown', function(e) {
+      $('#send-vote-email').prop('checked', true);
+    });
+  })();
+</script>
+
+<%= render 'shared/timer' %>

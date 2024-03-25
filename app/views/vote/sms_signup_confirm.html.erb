@@ -1,0 +1,83 @@
+<% content_for :title, t('navigation.brand') %>
+
+<style>
+.card-body {
+  font-size: 18px;
+}
+
+.side-note {
+  font-size: 18px;
+}
+
+span.alert {
+  font-size: 16px;
+}
+
+input[type='number'] {
+  display: inline-block;
+  width: 200px;
+  height: 50px;
+  font-size: 18px;
+}
+</style>
+
+<% content_for :head do %>
+  <meta name="format-detection" content="telephone=no" />
+  <style>
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  </style>
+<% end %>
+
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-sm-8 main">
+      <h2><%= t('sms_signup_confirm.header') %></h2>
+      <br>
+      <div class="card bg-light">
+        <div class="card-body">
+          <%= t('sms_signup_confirm.instructions', phone_number: @voter.authentication_id).html_safe %>
+
+          <form action="<%= url_for(action: :post_sms_signup_confirm) %>" method="post">
+            <p>
+              <input type="number" name="confirmation_code" class="form-control" autocomplete="one-time-code" placeholder="<%= t('sms_signup_confirm.code_placeholder') %>" autofocus="autofocus" />
+              <% if flash[:error] %>
+                <span class="alert alert-danger"><%= flash[:error]%></span>
+              <% end %>
+            </p>
+            <input type="submit" value="<%= t('sms_signup_confirm.confirm_button') %>" class="btn btn-lg btn-primary" />
+            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>" />
+          </form>
+        </div>
+      </div>
+      <script>
+      function resendCode() {
+        document.getElementById('resend').submit();
+      }
+      </script>
+      <form id="resend" action="<%= url_for(action: :post_sms_signup) %>" method="post">
+        <p class="side-note">
+          <input name="phone_number" type="hidden" value="<%= @voter.authentication_id %>">
+          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+          <%= t('sms_signup_confirm.resend_code', resend_code_url: 'javascript:resendCode()').html_safe %>
+        </p>
+      </form>
+
+      <p class="side-note">
+        <%= t('sms_signup_confirm.make_sure_phone_number_is_correct', phone_number: @voter.authentication_id, signup_url: url_for(action: :sms_signup)).html_safe %>
+      </p>
+
+      <p class="side-note">
+        <%= t('sms_signup_confirm.still_not_working', code_signup_url: url_for(action: :code_signup)).html_safe %>
+      </p>
+
+      <p class="side-note"><%= t('election.can_also_vote_in_person').html_safe %></p>
+      <%= t('election.info').html_safe %>
+    </div>
+  </div>
+</div>

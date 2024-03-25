@@ -1,0 +1,481 @@
+<style>
+.group {
+  border: 1px #ced4da solid;
+  border-radius: 0.25rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 15px;
+}
+.group-title {
+  font-weight: bold;
+}
+.group-info {
+  float: right;
+  color: #6c757d;
+}
+
+.font-weight-lightbold {
+  font-weight: 600;
+}
+
+.help-block {
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+.url {
+  padding: 2px 4px;
+  border-radius: 4px;
+  background-color: #f2f2f2;
+}
+
+
+#submit-button-wrapper {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  padding: 12px 0;
+}
+
+
+.text-reset {
+  text-align: right;
+  font-size: 90%;
+}
+
+.text-reset a {
+  color: #737373;
+}
+
+
+.localeTable > tbody > tr > td:first-child {
+  vertical-align: top;
+  white-space: nowrap;
+  padding-top: 8px;
+  padding-right: 5px;
+  font-size: 90%;
+}
+
+.localeTable > tbody > tr > td:last-child {
+  width: 100%;
+}
+
+
+.basicInfoTable > tbody > tr > td:first-child {
+  vertical-align: top;
+  white-space: nowrap;
+  padding-top: 8px;
+  padding-right: 10px;
+}
+
+.basicInfoTable > tbody > tr > td:last-child {
+  width: 100%;
+  padding-bottom: 6px;
+}
+
+
+.preview-wrapper {
+  border: 1px #ccc solid;
+  border-radius: 4px;
+  height: 280px;
+  overflow: hidden;
+}
+
+.preview {
+  width: 100%;
+  height: 100%;
+  font-size: 90%;
+}
+
+.preview-budgetbar {
+  padding: 8px;
+  text-align: center;
+  background-color: #343a40;
+  color: #fff;
+}
+.preview-budgetbar .progress {
+  width: 80%;
+  height: 12px;
+  margin: 0 auto;
+}
+.preview-budgetbar .progress-bar {
+  width: 40%;
+}
+
+.preview-tokenbar {
+  padding: 8px;
+  text-align: center;
+  background-color: #343a40;
+  color: #fff;
+}
+
+.preview-tokenbar .progress {
+  width: 80%;
+  height: 12px;
+  margin: 0 auto;
+}
+.preview-tokenbar .progress-bar {
+  width: 40%;
+}
+
+.preview-leftbar {
+  padding: 8px;
+  width: 100px;
+  vertical-align: top;
+}
+.preview-sidebar > div {
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+.preview-list {
+  padding: 8px;
+}
+
+.preview-topTracker {
+  background-color: #ddd;
+  margin: -8px -8px 8px;
+  padding: 8px;
+  text-align: center;
+}
+
+.preview-project {
+  display: table;
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
+.preview-project-row {
+  display: table-row;
+}
+.preview-project-cell {
+  display: table-cell;
+  border: 1px #ccc solid;
+  padding: 4px;
+  height: 80px;
+}
+
+.preview-project-cell-selected {
+  background-color: #dff0d8;
+}
+
+.preview-theme0 .preview-sidebar > div {
+  border-top: 1px #ccc solid;
+  border-right: 1px #ccc solid;
+}
+.preview-theme0 .preview-sidebar > div:last-child {
+  border-bottom: 1px #ccc solid;
+}
+.preview-theme0 .preview-sidebar-selected {
+  background-color: #dff0d8;
+}
+.preview-theme1 .preview-leftbar {
+  background-color: #ddd;
+}
+.preview-theme1 .preview-sidebar-selected {
+  background-color: #a6cba6;
+}
+.preview-theme2 .preview-leftbar {
+  background-color: #444;
+  color: #fff;
+}
+.preview-theme2 .preview-sidebar-selected {
+  background-color: #449d44;
+}
+
+
+.projectPreview {
+  border: 1px #ccc solid;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 90%;
+}
+.projectPreview p {
+  margin-bottom: 0.75rem;
+}
+.projectPreview img {
+  float: right;
+  margin-left: 10px;
+}
+.projectPreview button {
+  pointer-events: none;
+  font-size: 100%;
+}
+
+
+.previewCaption {
+  text-align: center;
+  margin-top: 4px;
+}
+
+
+.tinyMCEEditor {
+  border: 1px #ced4da solid;
+  border-radius: 4px;
+  padding: 8px;
+}
+.mce-edit-focus {
+  outline: none;
+}
+
+
+.timeout > input.form-control {
+  width: 70px;
+}
+</style>
+
+<% @election.errors.full_messages.each do |msg| %>
+  <p class="error"><%= msg %></p>
+<% end %>
+
+<%= form_for([:admin, @election], remote: !is_creating, html: {id: 'form', :'data-type' => is_creating ? nil : :json}) do |f| %>
+
+  <%# # FIXME: Hacky way to circumvent elements with same ID in the advanced form %>
+  <%= f.hidden_field :config_yaml, id: 'config_yaml' %>
+
+  <div id="config_gui_editor"></div>
+
+  <%#= f.submit 'Save', class: 'btn btn-primary' %>
+
+  <div id="submit-button-wrapper" class="primary">
+    <div class="container-fluid">
+      <%= f.submit 'Save', class: 'btn btn-primary', disabled: !current_user.can_update_election?(@election) %>
+    </div>
+  </div>
+
+<% end %>
+
+<br><br><br>
+
+<script src="/js/tinymce/tinymce.min.js"></script>
+<script src="/js/js-yaml-customized.min.js"></script>
+<link rel="stylesheet" href="/css/daypicker.css" />
+<script>
+var localeNames = <%= LOCALE_NAMES.to_json.html_safe %>; // FIXME: Hacky.
+
+var electionData = <%= @election.as_json(only: [:name, :slug, :budget, :time_zone] + (current_user.superadmin? ? [:allow_admins_to_update_election, :allow_admins_to_see_voter_data, :allow_admins_to_see_exact_results, :real_election, :remarks] : [])).to_json.html_safe %>;
+
+var timeZones = <%= ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] }.to_json.html_safe %>;
+var hostWithPort = "<%=j request.host_with_port %>";
+var isCurrentUserSuperadmin = <%= current_user.superadmin? %>;
+</script>
+
+<%= javascript_include_tag 'config' %>
+
+<script>
+var configDescription = <%= @config_description.to_json.html_safe %>;
+
+// Add locales to configDescription
+// We could do it on the server, but configDescription would be extremely large.
+(function() {
+  var locales = <%= @locales.to_json.html_safe %>;
+  function toDescription(o) {
+    var results = [];
+    for (var k in o) {
+      var v = o[k];
+      var option;
+      if ((v instanceof Object) && !(v instanceof Array)) {
+        option = {name: k, children: toDescription(v)};
+      } else if (v instanceof Array) {
+        //option = {name: k, default: v};
+        continue;
+      } else {
+        option = {name: k, default: v}; //FIXME: not always string
+      }
+      results.push(option);
+    }
+    return results;
+  }
+
+  configDescription.push({name: 'locales', children: toDescription(locales)});
+})();
+
+
+
+const DB = function(configDescription) {
+  const configTree = construct(configDescription);
+  let callback = function() { };
+  let savedConfigStr;
+
+  function construct(os) {
+    const result = {};
+    for (let o of os) {
+      const k = o.name;
+      if (o.children !== undefined) {
+        result[k] = {
+          children: construct(o.children),
+          hidden: false
+        }
+      } else {
+        result[k] = {
+          default: o.default,
+          value: (!!o.required) ? o.default : undefined,
+          required: !!o.required,
+          hidden: false
+        }
+        if (o.default === null) {
+          
+        }
+      }
+    }
+    return result;
+  }
+
+  function retrieve(path) {
+    const a = path.split(".");
+    const n = a.length;
+    let o = configTree;
+    for (let i = 0; i < n - 1; ++i) {
+      o = o[a[i]].children;
+    }
+    return o[a[n - 1]];
+  };
+
+  this.get = function(key) {
+    const tmp = retrieve(key);
+    return (tmp.value !== undefined) ? tmp.value : tmp.default;
+  }
+
+  this.set = function(key, value) {
+    if (savedConfigStr === undefined) {
+      savedConfigStr = JSON.stringify(getConfig());
+    }
+    retrieve(key).value = value;
+    callback();
+  }
+
+  this.setHidden = function(key, hidden) {
+    retrieve(key).hidden = hidden;
+  }
+
+  this.setCallback = function(c) {
+    callback = c;
+  }
+
+  // Extract (minimal) config from configTree.
+  function recurse(o) {
+    // FIXME: There is a delay between render and willReceiveProps
+    let result;
+    for (let k in o) {
+      const v = o[k];
+      if (v.hidden)
+        continue;
+      let tmp;
+      if (v.children !== undefined) {
+        tmp = recurse(v.children);
+      } else if (v.value !== undefined && (v.value !== v.default || v.required)) {
+        // FIXME: The equality doesn't work with object types.
+        tmp = v.value;
+      }
+      if (tmp !== undefined) {
+        if (result === undefined) {
+          result = {};
+        }
+        result[k] = tmp;
+      }
+    }
+    return result;
+  }
+
+  function getConfig() {
+    const config = recurse(configTree);
+    return (config !== undefined) ? config : {};
+  }
+
+  // Apply config to configTree.
+  function recurse2(o, config) {
+    for (let k in o) {
+      const tmp = config[k];
+      if (tmp === undefined)
+        continue;
+      const v = o[k];
+      if (v.children !== undefined) {
+        recurse2(v.children, tmp);
+      } else {
+        v.value = tmp;
+      }
+    }
+  }
+
+  this.setConfigYAML = function(configYAML) {
+    var config;
+    try {
+      config = jsyaml.safeLoad(configYAML, {schema: jsyaml.JSON_SCHEMA});
+    } catch (e) {
+      if (e instanceof jsyaml.YAMLException) {
+        alert(e);
+        return false;
+      }
+      throw e;
+    }
+    if (config === undefined)
+      config = {};
+
+    recurse2(configTree, config);
+    callback();
+    return true;
+  }
+
+  this.getConfigYAML = function() {
+    var config = getConfig();
+    return jsyaml.safeDump(config, {schema: jsyaml.JSON_SCHEMA, lineWidth: -1});
+  }
+
+  this.hasUnsavedChange = function() {
+    return savedConfigStr !== undefined && savedConfigStr != JSON.stringify(getConfig());
+  }
+
+  this.saveChange = function() {
+    savedConfigStr = undefined;
+  }
+}
+
+
+const configDB = new DB(configDescription);
+
+if (!configDB.setConfigYAML(document.getElementById('config_yaml').value)) {
+  alert('Error');
+}
+
+document.getElementById('form').addEventListener("submit", function() {
+  document.getElementById('config_yaml').value = configDB.getConfigYAML();
+});
+
+// FIXME: Handle exception.
+var configGUIEditorDiv = document.getElementById('config_gui_editor');
+ReactDOM.render(React.createElement(ConfigEditor, {db: configDB}), configGUIEditorDiv);
+
+window.addEventListener("beforeunload", function(event) {
+  var s = undefined;
+  if (configDB.hasUnsavedChange()) {
+    s = "Changes you made may not be saved.";
+    event.returnValue = s;
+  }
+  return s;
+});
+
+<% if !is_creating %>
+(function() {
+  var $submitButton = $("#form input[type=submit]");
+  $("#form").on("ajax:send", function (e, data, status, xhr) {
+    $submitButton.attr('disabled', 'disabled');
+    $submitButton.val('Saving...');
+  }).on("ajax:success", function (e, data, status, xhr) {
+    configDB.saveChange();
+    $submitButton.val('Saved');
+    setTimeout(function() {  // hacky
+      $submitButton.removeAttr('disabled');
+      $submitButton.val('Save');
+    }, 400);
+  }).on("ajax:error", function (e, xhr, status, error) {
+    $submitButton.removeAttr('disabled');
+    $submitButton.val('Save');
+    alert("Error\n" + xhr.responseText);
+  }).on("ajax:complete", function (e, xhr, status, error) {
+  });
+})();
+<% end %>
+
+</script>

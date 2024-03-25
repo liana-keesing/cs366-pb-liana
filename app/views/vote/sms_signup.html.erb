@@ -1,0 +1,72 @@
+<% content_for :title, t('navigation.brand') %>
+
+<style>
+.card-body {
+  font-size: 18px;
+}
+
+.side-note {
+  font-size: 18px;
+}
+
+span.alert {
+  font-size: 16px;
+}
+
+input[type='tel'], input[type='text'] {
+  display: inline-block;
+  width: 250px;
+  height: 50px;
+  font-size: 16px;
+}
+</style>
+
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-sm-8 main">
+      <script>
+      function strip(s) {
+        return s.replace(/^\s+|\s+$/g, '');
+      }
+
+      function validate() {
+        if (strip($('#phone_number').val()) == '') {
+          alert('Please enter your cell phone number.');
+          $('#phone_number').focus();
+          return false;
+        }
+        return true;
+      }
+      </script>
+      <form action="<%= url_for(action: :post_sms_signup) %>" method="post" onsubmit="return validate();">
+        <h1><%= t('sms_signup.header').html_safe %></h1>
+        <br>
+        <div class="card bg-light">
+          <div class="card-body">
+            <%= t('sms_signup.instructions').html_safe %>
+            <p>
+              <input type="tel" name="phone_number" id="phone_number" class="form-control" autocomplete="off" placeholder="<%= t('sms_signup.phone_number_placeholder') %>" autofocus="autofocus" />
+              <% if @error %>
+                <span class="text-danger">
+                  <% if @error.code == 21211 %>
+                    <%= t('sms_signup.invalid_phone_number', phone_number: @phone_number) %>
+                  <% elsif @error.code == 21610 %>
+                    <%= t('sms_signup.blacklisted_phone_number', our_phone_number: @our_phone_number) %>
+                  <% else %>
+                    <%# FIXME: should not show this to the user. %>
+                    <%= @error.message %>
+                  <% end %>
+                </span>
+              <% end %>
+            </p>
+            <input type="submit" value="<%= t('sms_signup.verify_button') %>" class="btn-lg btn btn-primary" />
+            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>" />
+          </div>
+        </div>
+      </form><br>
+      <p class="side-note"><%= t('sms_signup.no_cell_phone_instruction', code_signup_url: url_for(action: :code_signup)).html_safe %></p>
+      <p class="side-note"><%= t('election.can_also_vote_in_person').html_safe %></p>
+      <%= t('election.info').html_safe %>
+    </div>
+  </div>
+</div>
