@@ -472,7 +472,7 @@ module Admin
 
     def analytics_vote_count_table(election, utc_offset) # fixme: edge case not accounted for. When multiple voting methods are added as a primary ballot, only the first one is considered a primary ballot
       has_external_vote_count = !election.projects.where('external_vote_count > 0').empty?
-      workflow_first = @election.config[:workflow][0]  
+      workflow_first = @election.config[:workflow][0]
 
       voters_by_date_and_origin = election.valid_voters
         .select("DATE(CONVERT_TZ(created_at, '+00:00', '#{utc_offset}')) AS date, authentication_method, location_id, COUNT(*) AS vote_count")
@@ -677,15 +677,12 @@ module Admin
                                         .joins(:voter)
                                         .where(voters: { void: 0 })
                                         .pluck(:voter_id)
-          
+
           project_cost_coverable = project_voters.sum { |voter_id| shares[voter_id] } >= project.cost
           project_cost_coverable && project_voters.any?
         end
 
-        puts "check!" # Debug print
-
         break if projs.empty?
-        puts "check?" # Debug print
 
          # Calculate effective vote count for affordable projects
          project_votes = projs.map do |project|
@@ -693,46 +690,61 @@ module Admin
                                        .joins(:voter)
                                        .where(voters: { void: 0 })
                                        .pluck(:voter_id)
-          vote_count = project_voters.size
-          [project, vote_count]
+                                       .sort_by{|voter_id| shares[voter_id]}
+          # Compute share
+          vote_share = 0
+          total_funded = 0
+          l = project_voters.length
+          prev = 0
+          project_voters.each do |p|
+            total_funded += (shares[p] - prev) * l
+            if total_funded >= project.cost
+              vote_share = shares[p] - ((total_funded - project.cost) / l)
+              break
+            end
+            l -= 1
+            prev = shares[p]
+          end
+          [project, vote_share]
         end.to_h
-    
+
         # Select the project with the highest vote count
-        selected_project, _ = project_votes.max_by { |_project, vote_count| vote_count }
+        selected_project, vote_share = project_votes.min_by { |_project, vote_share| vote_share }
         break unless selected_project
-    
+
         # Calculate and deduct shares for voters of the selected project
         selected_project_voters = VoteKnapsack.where(project_id: selected_project.id)
                                               .joins(:voter)
                                               .where(voters: { void: 0 })
                                               .pluck(:voter_id)
-        share_per_voter = selected_project.cost.to_f / selected_project_voters.size
+        #3share_per_voter = selected_project.
         selected_project_voters.each do |voter_id|
-          shares[voter_id] -= share_per_voter if shares[voter_id] >= share_per_voter
+          shares[voter_id] -= vote_share
+          shares[voter_id] = 0 if shares[voter_id] < 0
         end
-    
+
         # Deduct project cost from total budget and remove the project from consideration
         total_budget -= selected_project.cost
         projs.delete(selected_project)
-    
+
         # Record the funded project
         funded_projects[selected_project.id] = {
           project_id: selected_project.title,
-          vote_count: selected_project_voter_ids.size,
+          vote_count: selected_project_voters.size,
           allocation: selected_project.cost,
-          share_per_voter: share_per_voter
+          share_per_voter: vote_share
         }
       end
-    
+
       funded_projects.values
     end
-    
-    
+
+
 
     def analytics_knapsack(election, utc_offset)
       knapsack_projects = election.categorized? ? election.projects.left_outer_joins(:category).where('category_group IN (?) OR category_id IS NULL', election.config[:knapsack][:pages]) : election.projects
       valid_voters = election.voters.where(void: 0).select(:id, :stage) # Simplify the voters query
-      
+
       mes_data = compute_and_fund_projects_by_equal_shares(knapsack_projects, valid_voters, election.budget)
 
       votes_by_project_and_cost = knapsack_projects

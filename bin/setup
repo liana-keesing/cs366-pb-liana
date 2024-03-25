@@ -14,6 +14,7 @@ chdir APP_ROOT do
   # Add necessary setup steps to this file.
 
   puts '== Installing dependencies =='
+  system! 'bundle config build.mysql2 --with-ldflags="-L/opt/homebrew/opt/mysql/lib" --with-cppflags=-I/opt/homebrew/opt/mysql/include --with-ldflags="-L$(brew --prefix zstd)/lib -L$(brew --prefix openssl)/lib"'
   system! 'gem install bundler --conservative'
   system('bundle check') || system!('bundle install')
 
