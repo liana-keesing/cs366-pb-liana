@@ -97,7 +97,7 @@ FIXME: Currently not working. Need to fix this.
       </tbody>
     </table>
   </div>
-  <div class="tab-pane" id="method-equal-shares-pane" role="tabpanel" aria-labelledby="method-equal-shares-tab">
+  <%# <div class="tab-pane" id="method-equal-shares-pane" role="tabpanel" aria-labelledby="method-equal-shares-tab">
     <div class="form-inline">
       <div class="form-group">
         <label for="mes-input">Method of Equal Shares question:</label>
@@ -109,7 +109,7 @@ FIXME: Currently not working. Need to fix this.
         </select>
       </div>
     </div>
-  </div> 
+  </div> %>
   <div class="tab-pane" id="method-equal-shares-pane" role="tabpanel" aria-labelledby="method-equal-shares-tab">
   </div>
 </div>
@@ -270,7 +270,7 @@ function reloadMESTable() {
   var thead = document.createElement('thead');
   thead.className = 'thead-light';
   var trHead = document.createElement('tr');
-  var headers = ['Project ID', 'Vote Count', 'Allocation', 'Share Per Voter'];
+  var headers = ['Project ID', 'Vote Count', 'Allocation', 'p-affordability'];
   headers.forEach(function(header) {
     var th = document.createElement('th');
     th.textContent = header;
